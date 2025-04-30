@@ -5,7 +5,7 @@ import { sendToMain } from "../IPC/main"
 import { openURL } from "../IPC/responsesMain"
 import { getKey } from "../utils/keys"
 import { httpsRequest } from "../utils/requests"
-import { chumsLoadServices } from "./request"
+import { apiRequest, chumsLoadServices } from "./request"
 import { getDocumentsFolder, parseShow, readFile } from "../utils/files"
 //import { Show } from "../../types/Show"
 import path from "path"
@@ -123,7 +123,7 @@ function chumsAuthenticate(scope: ChumsScopes): Promise<ChumsAuthData> {
 
         stores.ACCESS.set(`chums_${scope}`, data)
         sendToMain(ToMain.CHUMS_CONNECT, { success: true, isFirstConnection: true })
-        logSongShowNames();
+        sendSongsToChums();
         resolve(data)
       })
     })
@@ -167,7 +167,7 @@ export function chumsDisconnect(scope: ChumsScopes = "plans") {
 
 export function chumsStartupLoad(scope: ChumsScopes = "plans") {
   if (!stores.ACCESS.get(`chums_${scope}`)) return
-  logSongShowNames()
+  sendSongsToChums()
   chumsLoadServices()
 }
 
@@ -180,7 +180,15 @@ function loadShowData(showName: string) {
 
 }
 
-function logSongShowNames() {
+async function sendSongsToChums() {
+  const songData = getChumsSongData();
+  await apiRequest({ api: "content", authenticated: true, scope: "plans", endpoint: "/songs/import", method: "POST", data: songData })
+  console.log("SENT IT");
+
+  //sendToMain(ToMain.TOAST, "Synced song library to Chums")
+}
+
+function getChumsSongData() {
   const songList: any = [];
   const shows = stores.SHOWS.store as { [key: string]: any }
   Object.values(shows).forEach(show => {
@@ -208,4 +216,5 @@ function logSongShowNames() {
     }
   });
   console.log("Song List", songList);
+  return songList
 }
