@@ -6,7 +6,9 @@ import { openURL } from "../IPC/responsesMain"
 import { getKey } from "../utils/keys"
 import { httpsRequest } from "../utils/requests"
 import { chumsLoadServices } from "./request"
+import { getDocumentsFolder, readFile } from "../utils/files"
 //import { Show } from "../../types/Show"
+import path from "path"
 
 const app = express()
 const CHUMS_PORT = 5502
@@ -172,6 +174,16 @@ export function chumsStartupLoad(scope: ChumsScopes = "plans") {
 export function logSongShowNames() {
   console.log("MADE IT");
   const shows = stores.SHOWS.store as { [key: string]: any }
+  Object.values(shows).forEach(show => {
+    const showsPath = getDocumentsFolder();
+    console.log("showsPath", showsPath);
+    console.log("SHOW", show);
+    const showPath: string = path.join(showsPath, `${show.name}.show`)
+    const jsonData = readFile(showPath) || "{}"
+    console.log("JSON DATA", jsonData);
+  });
+
+
   const songsToImport = Object.values(shows)
     .filter(show => show.category === "song")
     .map(show => ({
