@@ -6,7 +6,7 @@ import { openURL } from "../IPC/responsesMain"
 import { getKey } from "../utils/keys"
 import { httpsRequest } from "../utils/requests"
 import { chumsLoadServices } from "./request"
-import { getDocumentsFolder, readFile } from "../utils/files"
+import { getDocumentsFolder, parseShow, readFile } from "../utils/files"
 //import { Show } from "../../types/Show"
 import path from "path"
 
@@ -171,16 +171,22 @@ export function chumsStartupLoad(scope: ChumsScopes = "plans") {
   chumsLoadServices()
 }
 
-export function logSongShowNames() {
+function loadShowData(showName: string) {
+  const showsPath = getDocumentsFolder();
+  const showPath: string = path.join(showsPath, `${showName}.show`)
+  const jsonData = readFile(showPath) || "{}"
+  const show = parseShow(jsonData)
+  return show;
+
+}
+
+function logSongShowNames() {
   console.log("MADE IT");
   const shows = stores.SHOWS.store as { [key: string]: any }
   Object.values(shows).forEach(show => {
-    const showsPath = getDocumentsFolder();
-    console.log("showsPath", showsPath);
     console.log("SHOW", show);
-    const showPath: string = path.join(showsPath, `${show.name}.show`)
-    const jsonData = readFile(showPath) || "{}"
-    console.log("JSON DATA", jsonData);
+    const showData = loadShowData(show.name);
+    console.log("Show data", showData);
   });
 
 
