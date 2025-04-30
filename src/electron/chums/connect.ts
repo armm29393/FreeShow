@@ -181,26 +181,31 @@ function loadShowData(showName: string) {
 }
 
 function logSongShowNames() {
-  console.log("MADE IT");
+  const songList: any = [];
   const shows = stores.SHOWS.store as { [key: string]: any }
   Object.values(shows).forEach(show => {
-    console.log("SHOW", show);
-    const showData = loadShowData(show.name);
-    console.log("Show data", showData);
+    if (show.category === "song") {
+      const showData = loadShowData(show.name);
+      if (showData) {
+        songList.push({
+          title: showData[1].meta?.title || showData[1].name || "",
+          artist: showData[1].meta?.artist || "",
+          lyrics: "",
+          ccliNumber: showData[1].meta?.CCLI || ""
+        })
+
+        //Add lyrics
+        Object.keys(showData[1].slides).forEach((slideKey: string) => {
+          const slide = showData[1].slides?.[slideKey];
+          slide.items.forEach((item: any) => {
+            item.lines.forEach((line: any) => {
+              songList[songList.length - 1].lyrics += line.text?.[0]?.value + " " || "";
+            });
+          });
+        });
+
+      }
+    }
   });
-
-
-  const songsToImport = Object.values(shows)
-    .filter(show => show.category === "song")
-    .map(show => ({
-      title: show.meta?.title || "",
-      artist: show.meta?.artist || "",
-      lyrics: show.slides?.[Object.keys(show.slides)[0]]?.items?.[0]?.lines?.[0]?.text?.[0]?.value || "",
-      ccliNumber: show.meta?.CCLI || ""
-    }))
-
-
-  console.log("Shows", shows);
-  console.log("Songs to import:", JSON.stringify(songsToImport, null, 2));
-  return songsToImport;
+  console.log("Song List", songList);
 }
