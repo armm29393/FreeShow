@@ -205,11 +205,14 @@ async function sendSongsToChums() {
 function getChumsSongData() {
   const songList: any = [];
   const shows = stores.SHOWS.store as { [key: string]: any }
-  Object.values(shows).forEach(show => {
+  Object.keys(shows).forEach((key: string) => {
+    const show = shows[key];
     if (show.category === "song") {
+      //console.log("Show", show);
       const showData = loadShowData(show.name);
       if (showData) {
         songList.push({
+          freeshowKey: key,
           title: showData[1].meta?.title || showData[1].name || "",
           artist: showData[1].meta?.artist || "",
           lyrics: "",
@@ -231,6 +234,6 @@ function getChumsSongData() {
       }
     }
   });
-  console.log("Song List", songList);
+  //console.log("Song List", songList);
   return songList
 }
