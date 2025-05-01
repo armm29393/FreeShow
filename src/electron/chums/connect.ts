@@ -212,7 +212,7 @@ function getChumsSongData() {
       const showData = loadShowData(show.name);
       if (showData) {
         songList.push({
-          freeshowKey: key,
+          freeShowId: key,
           title: showData[1].meta?.title || showData[1].name || "",
           artist: showData[1].meta?.artist || "",
           lyrics: "",

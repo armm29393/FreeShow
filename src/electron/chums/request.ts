@@ -199,7 +199,7 @@ function getShow(ARRANGEMENT_KEY: any, ARRANGEMENT: any, SONG: any, SONG_DETAILS
     media: {},
   }
 
-  const showId = `chumssong_${ARRANGEMENT_KEY.id}`
+  const showId = ARRANGEMENT.freeShowId || `chumssong_${ARRANGEMENT_KEY.id}`
   return { showId, show, seconds: SONG_DETAILS.seconds || 0 }
 }
 
