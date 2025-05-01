@@ -192,10 +192,14 @@ function loadShowData(showName: string) {
 
 async function sendSongsToChums() {
   const songData = getChumsSongData();
-  await apiRequest({ api: "content", authenticated: true, scope: "plans", endpoint: "/songs/import", method: "POST", data: songData })
-  console.log("SENT IT");
-
-  //sendToMain(ToMain.TOAST, "Synced song library to Chums")
+  const batchSize = 10;
+  //send the data in batches
+  for (let i = 0; i < songData.length; i += batchSize) {
+    const batch = songData.slice(i, i + batchSize);
+    console.log("Sending batch", batch);
+    await apiRequest({ api: "content", authenticated: true, scope: "plans", endpoint: "/songs/import", method: "POST", data: batch })
+  }
+  sendToMain(ToMain.TOAST, "Synced song library to Chums")
 }
 
 function getChumsSongData() {
@@ -222,6 +226,7 @@ function getChumsSongData() {
           });
           songList[songList.length - 1].lyrics += "\n";
         });
+        songList[songList.length - 1].lyrics = songList[songList.length - 1].lyrics.replaceAll("\n\n", "\n");
 
       }
     }
