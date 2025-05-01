@@ -13,10 +13,20 @@ import path from "path"
 const app = express()
 const CHUMS_PORT = 5502
 
+//Prod
+/*
 export const MEMBERSHIP_API_URL = "https://membershipapi.churchapps.org"
 export const DOING_API_URL = "https://doingapi.churchapps.org"
 export const CONTENT_API_URL = "https://contentapi.churchapps.org"
 export const CHUMS_API_URL = "https://app.chums.org"
+*/
+
+//Dev
+export const MEMBERSHIP_API_URL = "https://membershipapi.staging.churchapps.org"
+export const DOING_API_URL = "https://doingapi.staging.churchapps.org"
+export const CONTENT_API_URL = "https://contentapi.staging.churchapps.org"
+export const CHUMS_API_URL = "https://app.staging.chums.org"
+
 const clientId = getKey("chums_id")
 const clientSecret = getKey("chums_secret")
 
@@ -207,9 +217,10 @@ function getChumsSongData() {
           const slide = showData[1].slides?.[slideKey];
           slide.items.forEach((item: any) => {
             item.lines.forEach((line: any) => {
-              songList[songList.length - 1].lyrics += line.text?.[0]?.value + " " || "";
+              songList[songList.length - 1].lyrics += line.text?.[0]?.value + "\n" || "";
             });
           });
+          songList[songList.length - 1].lyrics += "\n";
         });
 
       }
