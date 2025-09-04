@@ -26,33 +26,38 @@
         formatText(transposeText(text, -1))
     }
 
+    // cached platform check
+    const isMac = $os.platform === 'darwin'
+    
     // keyboard shortcuts
     function keydown(e: KeyboardEvent) {
         const target = e.target as HTMLTextAreaElement
         if (!target || target.tagName !== "TEXTAREA") return
 
-        const isMac = $os.platform === 'darwin'
         const cmdOrCtrl = isMac ? e.metaKey : e.ctrlKey
-        const altOrOption = e.altKey
-
+        
+        // Early return for non-relevant keys
+        if (!cmdOrCtrl && !e.altKey) return
+        
+        const { key, altKey } = e
+        
         // Line-based cut/copy/paste operations
-        if (cmdOrCtrl && (e.key === 'x' || e.key === 'c' || e.key === 'v')) {
-            const start = target.selectionStart
-            const end = target.selectionEnd
+        if (cmdOrCtrl && (key === 'x' || key === 'c' || key === 'v')) {
+            const { selectionStart, selectionEnd } = target
             
             // If no selection, operate on current line
-            if (start === end) {
+            if (selectionStart === selectionEnd) {
                 e.preventDefault()
                 
-                const lines = target.value.split('\n')
-                const cursorPos = start
+                const { value } = target
+                const lines = value.split('\n')
                 let lineStart = 0
                 let currentLineIndex = 0
                 
-                // Find which line the cursor is on
+                // Find current line index more efficiently
                 for (let i = 0; i < lines.length; i++) {
                     const lineEnd = lineStart + lines[i].length
-                    if (cursorPos >= lineStart && cursorPos <= lineEnd) {
+                    if (selectionStart >= lineStart && selectionStart <= lineEnd) {
                         currentLineIndex = i
                         break
                     }
@@ -61,16 +66,16 @@
                 
                 const currentLine = lines[currentLineIndex]
                 
-                if (e.key === 'x') {
+                if (key === 'x') {
                     // Cut entire line
                     navigator.clipboard.writeText(currentLine + '\n')
                     lines.splice(currentLineIndex, 1)
                     text = lines.join('\n')
                     formatText(text)
-                } else if (e.key === 'c') {
+                } else if (key === 'c') {
                     // Copy entire line
                     navigator.clipboard.writeText(currentLine + '\n')
-                } else if (e.key === 'v') {
+                } else if (key === 'v') {
                     // Paste at current line
                     navigator.clipboard.readText().then(clipboardText => {
                         lines.splice(currentLineIndex + 1, 0, clipboardText.replace(/\n$/, ''))
@@ -80,35 +85,31 @@
                 }
             }
         }
-        
         // Move line up/down with Alt+Arrow
-        if (altOrOption && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+        else if (altKey && (key === 'ArrowUp' || key === 'ArrowDown')) {
             e.preventDefault()
             
-            const start = target.selectionStart
-            const lines = target.value.split('\n')
+            const { selectionStart, value } = target
+            const lines = value.split('\n')
             let lineStart = 0
             let currentLineIndex = 0
             
-            // Find which line the cursor is on
+            // Find current line index
             for (let i = 0; i < lines.length; i++) {
                 const lineEnd = lineStart + lines[i].length
-                if (start >= lineStart && start <= lineEnd) {
+                if (selectionStart >= lineStart && selectionStart <= lineEnd) {
                     currentLineIndex = i
                     break
                 }
                 lineStart = lineEnd + 1
             }
             
-            const direction = e.key === 'ArrowUp' ? -1 : 1
+            const direction = key === 'ArrowUp' ? -1 : 1
             const newIndex = currentLineIndex + direction
             
-            // Check bounds
+            // Check bounds and swap lines
             if (newIndex >= 0 && newIndex < lines.length) {
-                // Swap lines
-                const currentLine = lines[currentLineIndex]
-                lines[currentLineIndex] = lines[newIndex]
-                lines[newIndex] = currentLine
+                [lines[currentLineIndex], lines[newIndex]] = [lines[newIndex], lines[currentLineIndex]]
                 
                 text = lines.join('\n')
                 formatText(text)
@@ -116,7 +117,7 @@
                 // Update cursor position to follow the moved line
                 setTimeout(() => {
                     const newLineStart = lines.slice(0, newIndex).join('\n').length + (newIndex > 0 ? 1 : 0)
-                    const cursorOffset = start - lineStart
+                    const cursorOffset = selectionStart - lineStart
                     target.setSelectionRange(newLineStart + cursorOffset, newLineStart + cursorOffset)
                 })
             }
